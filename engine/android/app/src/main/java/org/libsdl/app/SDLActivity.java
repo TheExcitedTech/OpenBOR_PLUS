@@ -26,6 +26,7 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Selection;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
@@ -52,6 +53,7 @@ import android.widget.Toast;
 
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.Objects;
 
 
 /**
@@ -427,7 +429,56 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
                 SDLActivity.onNativeDropFile(filename);
             }
         }
+        
     }
+
+private static String[] getGamesFromIntent(Intent intent)
+  {
+    // Priority order when looking for game paths in an intent:
+    //
+    // Specifying multiple discs (for multi-disc games) is prioritized over specifying a single
+    // disc. But most of the time, only a single disc will have been specified anyway.
+    //
+    // Specifying content URIs (compatible with scoped storage) is prioritized over raw paths.
+    // The intention is that if a frontend app specifies both a content URI and a raw path, newer
+    // versions of Dolphin will work correctly under scoped storage, while older versions of Dolphin
+    // (which don't use scoped storage and don't support content URIs) will also work.
+
+    // 1. Content URI, multiple
+    ClipData clipData = intent.getClipData();
+    if (clipData != null)
+    {
+      String[] uris = new String[clipData.getItemCount()];
+      for (int i = 0; i < uris.length; i++)
+      {
+        uris[i] = Objects.toString(clipData.getItemAt(i).getUri());
+      }
+      return uris;
+    }
+
+    // 2. Content URI, single
+    Uri uri = intent.getData();
+    if (uri != null)
+      return new String[]{uri.toString()};
+
+    Bundle extras = intent.getExtras();
+    if (extras != null)
+    {
+      // 3. File path, multiple
+      String[] paths = extras.getStringArray("AutoStartFiles");
+      if (paths != null)
+        return paths;
+
+      // 4. File path, single
+      String path = extras.getString("AutoStartFile");
+      if (!TextUtils.isEmpty(path))
+        return new String[]{path};
+        SDLActivity.onNativeDropFile(path);
+    }
+
+    // Nothing was found
+    return null;	
+  }
 
     protected void pauseNativeThread() {
         mNextNativeState = NativeState.PAUSED;

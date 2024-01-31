@@ -5,3 +5,4 @@ OpenBOR.elf
 meta.xml
 engine/releases/
 /engine/ide/vs/Debug
+.DS_Store
