@@ -1,4 +1,9 @@
  # OpenBOR PLUS
+
+ Point of this fork is to try to get the Android version to accept additional parameters to select a game and load it directly from a front loader/command line. 
+
+ Can be compiled but the extras argument is currently not working.
+
 OpenBOR PLUS is an advanced version of official OpenBOR.<br>
 OpenBOR is a continuation of the Beats Of Rage 2D game engine, which was originally
 created by the wonderful folks over at [Senile Team](http://www.senileteam.com).
