@@ -432,7 +432,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         
     }
 
-private static String[] getGamesFromIntent(Intent intent)
+public static String[] getGamesFromIntent(Intent intent)
   {
     // Priority order when looking for game paths in an intent:
     //
@@ -1838,34 +1838,44 @@ private static String[] getGamesFromIntent(Intent intent)
         boolean result = (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED);
         nativePermissionResult(requestCode, result);
     }
-
     /**
      * This method is called by SDL using JNI.
      */
     public static int openURL(String url)
-    {
-        try {
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-
-            int flags = Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_MULTIPLE_TASK;
-            if (Build.VERSION.SDK_INT >= 21) {
-                flags |= Intent.FLAG_ACTIVITY_NEW_DOCUMENT;
-            } else {
-                flags |= Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET;
+    {   
+        Intent extra = new Intent();
+        Bundle extras = extra.getExtras();
+        {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                if (extras != null)
+                {
+                    String path = extras.getString("AutoStartFile");
+                    SDLActivity.onNativeDropFile(path);
+                    // return paths;
+                    i.setData(Uri.parse(path));
+                }
+                i.setData(Uri.parse(url));
+    
+                int flags = Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_MULTIPLE_TASK;
+                if (Build.VERSION.SDK_INT >= 21) {
+                    flags |= Intent.FLAG_ACTIVITY_NEW_DOCUMENT;
+                } else {
+                    flags |= Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET;
+                }
+                i.addFlags(flags);
+    
+                mSingleton.startActivity(i);
+            } catch (Exception ex) {
+                return -1;
             }
-            i.addFlags(flags);
-
-            mSingleton.startActivity(i);
-        } catch (Exception ex) {
-            return -1;
+            return 0;
         }
-        return 0;
     }
-
     /**
      * This method is called by SDL using JNI.
      */
+
     public static int showToast(String message, int duration, int gravity, int xOffset, int yOffset)
     {
         if(null == mSingleton) {
